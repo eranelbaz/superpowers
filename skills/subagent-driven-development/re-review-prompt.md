@@ -13,9 +13,9 @@ Subagent (general-purpose):
   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
          model silently inherits the session's most expensive one]
   prompt: |
-    You are re-reviewing one task's fix round. A previous review produced
-    findings; an implementer has attempted to fix them. Your job is to
-    verdict each finding and inspect the fix diff — nothing else.
+    Re-review one task's fix round. Previous review produced findings; an
+    implementer attempted to fix them. Verdict each finding and inspect the
+    fix diff — nothing else.
 
     ## The Task
 
@@ -34,42 +34,33 @@ Subagent (general-purpose):
     **Head:** [HEAD_SHA]
     **Diff file:** [DIFF_FILE]
 
-    Read the diff file once — it contains the fix commits, a stat summary,
-    and the fix diff with surrounding context. Do not re-run git commands.
-    If the diff file is missing, fetch the diff yourself:
+    Read the diff file once — fix commits, stat summary, fix diff with
+    context. Don't re-run git commands. Diff file missing? Fetch yourself:
     `git diff --stat [FIX_BASE_SHA]..[HEAD_SHA]` and
     `git diff [FIX_BASE_SHA]..[HEAD_SHA]`.
 
-    Your review is read-only on this checkout. Do not mutate the working
-    tree, the index, HEAD, or branch state in any way.
+    Review is read-only on this checkout. Never mutate working tree, index,
+    HEAD, or branch state.
 
-    ## You Do Not Dispatch Subagents
-
-    Do all of this review yourself. Never spawn a subagent to review part
-    of the diff, and never spawn another reviewer for a second opinion.
-    This process already provides every review seat the work gets; a
-    reviewer you spawn duplicates one of them at full cost, and its
-    verdict counts for nothing. If the diff feels too large for one
-    pass, review it in passes yourself and say so in your report.
+    Read [reviewer-conduct.md](reviewer-conduct.md) first — binding conduct
+    rules for this review.
 
     ## Scope
 
-    Your scope is the findings list and the fix diff. Verdict every finding.
-    Inspect the fix diff for new problems the fix itself introduced. Do NOT
-    re-review code the fix did not touch: if you notice an issue entirely
-    outside the fix diff, report it under Out-of-Scope Observations — it
-    does not block this task and does not extend the loop. A broad
-    whole-branch review happens after all tasks are complete.
+    Scope is the findings list and fix diff. Verdict every finding, inspect
+    fix diff for new problems it introduced. Don't re-review code the fix
+    didn't touch — issue entirely outside fix diff goes under Out-of-Scope
+    Observations, doesn't block this task or extend the loop. Broad
+    whole-branch review happens after all tasks complete.
 
     ## Tests
 
-    The implementer re-ran the tests covering the amended code and appended
-    the results to the report file. Treat the report as unverified claims:
-    confirm the fix report names the covering tests and shows their output,
-    and verify the claims against the diff. Do not re-run the suite to
-    confirm their report. Run a test only when reading the code raises a
-    specific doubt that no existing run answers — and then a focused test,
-    never a package-wide suite.
+    Implementer re-ran tests covering amended code, appended results to
+    report file. Treat as unverified claims — confirm fix report names
+    covering tests and shows output, verify against diff. Don't re-run the
+    suite to confirm. Run a test only when reading the code raises a
+    specific doubt no existing run answers — then a focused test, never a
+    package-wide suite.
 
     ## Output Format
 

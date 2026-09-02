@@ -1,6 +1,6 @@
 # Hermes Agent Tool Mapping
 
-Skills speak in actions ("dispatch a subagent", "create a todo", "read a file"). On Hermes Agent these resolve to the tools below.
+Skills speak in actions ("dispatch a subagent", "create a todo", "read a file"). Hermes Agent tools below.
 
 ## Tools
 
@@ -20,37 +20,35 @@ Skills speak in actions ("dispatch a subagent", "create a todo", "read a file").
 
 ## Instructions file
 
-When a skill mentions "your instructions file," on Hermes Agent this is **`AGENTS.md`** in the project directory, or **`SOUL.md`** globally at `~/.hermes/SOUL.md`.
+"Your instructions file" = **`AGENTS.md`** (project dir) or **`SOUL.md`** (global, `~/.hermes/SOUL.md`).
 
 ## Invoking a skill
 
-Hermes Agent has a `skills` toolset with `skill_view` and `skills_list` tools.
-To invoke a superpowers skill, use:
+`skills` toolset has `skill_view` and `skills_list`. To invoke:
 
 ```
 skill_view("brainstorming")
-skill_view("test-driven-development")
+skill_view("superpowers:brainstorming")
 ```
 
-If `skill_view` cannot find a superpowers skill (it may not appear in the catalog
-until the plugin fully registers it), fall back to reading the SKILL.md directly:
+`skill_view` misses a superpowers skill (may not be in catalog until plugin fully registers)? Fall back:
 
 ```
 read_file(path="~/.hermes/plugins/superpowers/skills/<skill-name>/SKILL.md")
 ```
 
-This fallback is the same mechanism used by other harnesses without native skill loading.
+Same fallback other no-native-skill-loading harnesses use.
 
 ## Subagent dispatch
 
-Use `delegate_task` to spawn isolated subagents for parallel or sequential workstreams:
+`delegate_task` spawns isolated subagents, parallel or sequential:
 
 ```
 delegate_task(goal="...", context="...", toolsets=[...], role="leaf")
 ```
 
-If `delegate_task` is unavailable, do the work inline rather than inventing tool calls.
+Unavailable? Work inline, don't invent tool calls.
 
 ## Task tracking
 
-Use the `todo` tool for task tracking within a session. For multi-agent task boards, use `hermes kanban` CLI if available. Treat older `TodoWrite` references as the task-tracking action.
+`todo` tool for in-session tracking. Multi-agent boards: `hermes kanban` CLI if available. Older `TodoWrite` refs = this action.

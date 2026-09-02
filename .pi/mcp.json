@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "limy": {
+      "disabled": true
+    },
+    "limy-local": {
+      "disabled": true
+    }
+  }
+}

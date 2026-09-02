@@ -1,76 +1,32 @@
 ## Subagent dispatch requires multi-agent support
 
-Add to your Codex config (`~/.codex/config.toml`):
+Add to `~/.codex/config.toml`:
 
 ```toml
 [features]
 multi_agent = true
 ```
 
-This enables the multi-agent tools that skills like
-`dispatching-parallel-agents` and `subagent-driven-development` use.
-Which tools you get depends on the multi-agent version your model
-preset selects (current presets run V2; older ones run V1). Trust your
-actual tool list over any table — including this one — when they
-disagree.
+Enables multi-agent tools for `dispatching-parallel-agents`/`subagent-driven-development`. Tools depend on preset's multi-agent version (current: V2; older: V1). Trust actual tool list over any table, including this one.
 
-- **Spawning:** give children a clean context with
-  `spawn_agent {fork_turns: "none"}`; the default `"all"` copies your
-  entire transcript into the child. On Codex 0.145+, role files under
-  `~/.codex/agents/` attach to isolated forks via `agent_type`.
-  Full-history forks accept `model` and `reasoning_effort` overrides
-  (only `agent_type` is refused there) — isolated forks are the SDD
-  default for context hygiene, not because overrides require them.
-- **Fix rounds:** resume the implementer with `followup_task` — it
-  delivers your message, triggers a turn, and transparently reloads a
-  child the harness evicted. Never dispatch a fresh implementer on the
-  theory that a spawned agent cannot be messaged again; on V2 it
-  always can.
-- **Lifecycle:** V2 has no `close_agent`. Finished children are
-  evicted automatically when slots are needed; leaving them unclosed
-  costs nothing. Only V1 sessions have `close_agent` — there, close
-  reviewers when their review returns, and close each implementer
-  after its task's review passes.
-- **Model names:** never copy a model name from a skill, table, or old
-  session into `spawn_agent` without checking it against your current
-  spawn allowlist — V2 accepts only V2-capable presets and hard-errors
-  on the rest.
+- **Spawning:** clean context via `spawn_agent {fork_turns: "none"}`; default `"all"` copies entire transcript. Codex 0.145+: role files under `~/.codex/agents/` attach to isolated forks via `agent_type`. Full-history forks accept `model`/`reasoning_effort` overrides too (only `agent_type` refused) — isolated forks are SDD default for context hygiene, not override restrictions.
+- **Fix rounds:** resume implementer with `followup_task` — delivers message, triggers turn, transparently reloads evicted child. Never spawn fresh implementer thinking a spawned agent can't be re-messaged; V2 always can.
+- **Lifecycle:** V2 has no `close_agent`; finished children auto-evict, unclosed costs nothing. V1 only: close reviewers on review return, close implementers after review passes.
+- **Model names:** never copy a model name into `spawn_agent` without checking current spawn allowlist — V2 hard-errors non-V2-capable presets.
 
 ## Waiting on children
 
-`wait_agent` is an event subscription, not a poll: a long wait wakes
-the moment a child produces mailbox activity, with the same latency as
-a short one. Short-timeout polling buys nothing and costs a tool call —
-and a context rebill — per poll. In measured sessions, roughly
-two-thirds of all wait calls were short polls that timed out.
+`wait_agent` = event subscription, not poll: wakes on mailbox activity regardless of wait length. Short-timeout polling costs a tool call + context rebill for nothing (~2/3 of wait calls in measured sessions were wasted short polls).
 
-- While you still have local work, do not wait at all. A completed
-  child's final answer is pushed into your mailbox and arrives with
-  your next turn.
-- When you are genuinely idle with children outstanding, wait in
-  bounded stretches: `wait_agent` with `timeout_ms` 300000-600000
-  (5-10 minutes). After each stretch — wake or timeout — post one
-  status line, run `list_agents`, and chase any child that finished
-  without reporting. Never stack polls shorter than five minutes; the
-  event subscription wakes a bounded stretch just as fast as a short
-  one.
-- Completion mail cannot wake an idle controller (it is delivered
-  without triggering a turn); covering that idle window is
-  `wait_agent`'s only job. A stretch that times out with no activity
-  is your cue to reconcile, not to shorten the next stretch.
+- Local work remaining? Don't wait — completed child's answer pushes to mailbox, arrives next turn.
+- Genuinely idle with children out → bounded stretches: `wait_agent` `timeout_ms` 300000-600000 (5-10 min). Each stretch end (wake/timeout): one status line, `list_agents`, chase silent finishers. Never poll under 5 min.
+- Completion mail can't wake idle controller on its own; `wait_agent` covers that gap. Timeout with no activity → reconcile, don't shorten next stretch.
 
 ## Model routing on spawns
 
-Every `spawn_agent` you issue — including when you are yourself a
-spawned child running a fan-out — sets `model` AND `reasoning_effort`
-explicitly, per the Model Selection rules of the skill you are
-executing. Setting `model` alone is a trap: the child's effort
-silently resets to that model's default, not to yours.
+Every `spawn_agent` (even from a spawned child fanning out) sets `model` AND `reasoning_effort` explicitly per skill's Model Selection rules. `model` alone silently resets effort to that model's default.
 
-Ask your human partner to add a machine-level backstop to
-`~/.codex/config.toml` so any spawn that slips through still routes to
-a deliberate tier instead of silently inheriting the session's most
-expensive model:
+Ask human partner for a config backstop so slipped-through spawns route to a deliberate tier, not priciest model:
 
 ```toml
 [agents]
@@ -80,8 +36,7 @@ default_subagent_reasoning_effort = "medium"
 
 ## Environment Detection
 
-Skills that create worktrees or finish branches should detect their
-environment with read-only git commands before proceeding:
+Skills creating worktrees/finishing branches: detect environment with read-only git commands first:
 
 ```bash
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
@@ -89,20 +44,16 @@ GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
 BRANCH=$(git branch --show-current)
 ```
 
-- `GIT_DIR != GIT_COMMON` → already in a linked worktree (skip creation)
-- `BRANCH` empty → detached HEAD (cannot branch/push/PR from sandbox)
+- `GIT_DIR != GIT_COMMON` → already in linked worktree (skip creation)
+- `BRANCH` empty → detached HEAD (can't branch/push/PR from sandbox)
 
-See `using-git-worktrees` Step 0 and `finishing-a-development-branch`
-Step 1 for how each skill uses these signals.
+Already isolated (`GIT_DIR != GIT_COMMON`) → skip creation. Otherwise native worktree tool if available, else `git worktree add <path> -b <branch>` under `.worktrees/` (verify gitignored first).
 
 ## Codex App Finishing
 
-When the sandbox blocks branch/push operations (detached HEAD in an
-externally managed worktree), the agent commits all work and informs
-the user to use the App's native controls:
+Sandbox blocks branch/push (detached HEAD in externally managed worktree) → commit all work, tell user to use App's native controls:
 
-- **"Create branch"** — names the branch, then commit/push/PR via App UI
-- **"Hand off to local"** — transfers work to the user's local checkout
+- **"Create branch"** — names branch, then commit/push/PR via App UI
+- **"Hand off to local"** — transfers work to user's local checkout
 
-The agent can still run tests, stage files, and output suggested branch
-names, commit messages, and PR descriptions for the user to copy.
+Agent can still run tests, stage files, output suggested branch names/commit messages/PR descriptions for user to copy.
