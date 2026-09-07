@@ -124,6 +124,18 @@ Re-check vs spec fresh-eyed, yourself, not subagent.
 
 Fix inline. Gap → add task.
 
+## Plan Stress-Test
+
+After self-review, ask: **"Stress-test plan first? quick (1 reviewer) / hardcore (3 adversarial angles + synthesis) / skip"**
+
+**Quick** → 1 reviewer, `plan-document-reviewer-prompt.md`. Standard tier.
+
+**Hardcore** → 3 parallel angle agents, `plan-stress-test-angle-prompt.md` (cheap tier), then 1 synthesis, `plan-stress-test-synthesis-prompt.md` (standard tier). Synthesis returns findings only — never rewrites plan. You apply fixes, same as Self-Review.
+
+**Skip** → straight to Execution Handoff.
+
+**Loop:** Critical/Important → fix inline, re-dispatch whole plan, same mode. Cap 3 rounds. Round 3 still open → stop, list for human partner, don't loop again. Minor never blocks — note, proceed.
+
 ## Execution Handoff
 
 **"Plan saved to `docs/superpowers/plans/<filename>.md`. Options:**
