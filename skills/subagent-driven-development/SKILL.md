@@ -135,7 +135,7 @@ Before deleting anything, collect every ledger line containing `Ruling:` — pre
 
 Final review clean, fixes merged → delete this plan's workspace (`rm -rf <workspace>`) — git history is the record now. Sibling directories belong to other plans; leave them alone.
 
-Run full test suite (stop and fix on failure), then present: 1) merge to base locally 2) push + open PR 3) keep branch as-is. Wait for the answer.
+Run full test suite (stop and fix on failure), then push branch and open a draft PR automatically (`gh pr create --draft`).
 
 ## Common Rationalizations
 

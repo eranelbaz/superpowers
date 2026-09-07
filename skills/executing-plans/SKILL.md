@@ -30,8 +30,8 @@ Per task: mark in_progress → follow each step exactly (bite-sized) → run ver
 
 All tasks done + verified:
 - Run full test suite. Failing → stop, report, fix before continuing.
-- Passing → present options: 1) merge to base locally 2) push + open PR 3) keep branch as-is. Wait for the answer — don't decide for them.
-- After merge or explicit discard: clean up worktree (`git worktree remove`), delete branch.
+- Passing → push branch and open a draft PR (`gh pr create --draft`) automatically.
+- After PR is merged or closed: clean up worktree (`git worktree remove`), delete branch.
 
 ## When to Stop and Ask for Help
 
