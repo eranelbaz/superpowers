@@ -19,8 +19,8 @@ Dispatch one of 3 parallel adversarial angle agents, hardcore mode.
 User overrides auto-pick, name angles explicitly ("use Reliability, Security, Scalability").
 
 ```
-Subagent (general-purpose):
-  model: [cheap tier — e.g. anthropic-proxy/claude-haiku-4-5]
+Subagent:
+  agent: [cheap-tier agent type from your subagent config — e.g. worker, scout, codex-worker, codex-scout]
   description: "Stress-test plan: [ANGLE]"
   prompt: |
     Senior engineer, devil's advocate. Find every loophole, failure mode,
@@ -53,4 +53,3 @@ Subagent (general-purpose):
 ```
 
 **Returns:** angle name, findings list (or none).
-</content>

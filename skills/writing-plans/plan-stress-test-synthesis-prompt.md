@@ -7,8 +7,8 @@ Dispatch synthesis agent, hardcore mode, after all 3 angle agents return.
 **Dispatch after:** all 3 angle agents done.
 
 ```
-Subagent (general-purpose):
-  model: [standard tier — e.g. anthropic-proxy/claude-sonnet-5]
+Subagent:
+  agent: [standard-tier agent type from your subagent config — e.g. reviewer, claude-reviewer, codex-reviewer]
   description: "Synthesize plan stress-test findings"
   prompt: |
     Three adversarial agents stress-tested a plan, different angles.
@@ -57,4 +57,3 @@ Subagent (general-purpose):
 ```
 
 **Returns:** Status, Critical/Important/Minor findings.
-</content>
